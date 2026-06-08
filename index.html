@@ -8,9 +8,22 @@
 </head>
 
 <body>
-    <canvas id="canvas" width="700" height="500"
-        style="position: absolute;left: 50%; top: 50%;transform: translate(-50%, -50%);"></canvas>
+    <canvas id="canvas"
+        style="position: absolute;left: 50%; top: 50%;transform: translate(-50%, -50%); display: block;"></canvas>
 
+    <script>
+      function resizeCanvas() {
+        var canvas = document.getElementById("canvas");
+        var ratio = 700 / 500;
+        var w = window.innerWidth * 0.95;
+        var h = window.innerHeight * 0.95;
+        if (w / h > ratio) { w = h * ratio; } else { h = w / ratio; }
+        canvas.width = Math.floor(w);
+        canvas.height = Math.floor(h);
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+    </script>
     <script src="asteroid.js"></script>
 </body>
 

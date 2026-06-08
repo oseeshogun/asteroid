@@ -124,7 +124,7 @@ music.volume = 0.2;
 music.loop = true;
 
 // set up game parameters
-var level, lives, score, highestScore, ship, asteroids, text, textAlpha;
+var level, lives, score, highestScore, ship, asteroids, text, textAlpha, scorePopups;
 newGame();
 
 // set up the game loop
@@ -230,6 +230,7 @@ function createAsteroid(x, y, r) {
       (Math.random() < 0.5 ? 1 : -1),
     r: r,
     a: Math.random() * Math.PI * 2,
+    rot: ((Math.random() * 0.6 + 0.2) / FPS) * (Math.random() < 0.5 ? 1 : -1),
     vert: Math.floor(Math.random() * (ASTEROIDS_VERT * 1) + ASTEROIDS_VERT / 2),
     offset: []
   };
@@ -245,6 +246,7 @@ function destroyAsteroid(index) {
   let asteroid = asteroids[index];
 
   // split the asteroid if necessary
+  var points;
   if (asteroid.r === Math.ceil(ASTEROIDS_SIZE / 2)) {
     asteroids.push(
       createAsteroid(asteroid.x, asteroid.y, Math.ceil(ASTEROIDS_SIZE / 4))
@@ -252,7 +254,8 @@ function destroyAsteroid(index) {
     asteroids.push(
       createAsteroid(asteroid.x, asteroid.y, Math.ceil(ASTEROIDS_SIZE / 4))
     );
-    score += LARGE_ASTEROIDS_POINT;
+    points = LARGE_ASTEROIDS_POINT;
+    score += points;
     fxbangLarge.play();
   } else if (asteroid.r === Math.ceil(ASTEROIDS_SIZE / 4)) {
     asteroids.push(
@@ -261,12 +264,15 @@ function destroyAsteroid(index) {
     asteroids.push(
       createAsteroid(asteroid.x, asteroid.y, Math.ceil(ASTEROIDS_SIZE / 8))
     );
-    score += MEDIUM_ASTEROIDS_POINT;
+    points = MEDIUM_ASTEROIDS_POINT;
+    score += points;
     fxbangMedium.play();
   } else {
-    score += SMALL_ASTEROIDS_POINT;
+    points = SMALL_ASTEROIDS_POINT;
+    score += points;
     fxbangSmall.play();
   }
+  scorePopups.push({ x: asteroid.x, y: asteroid.y, text: "+" + points, alpha: 1.0 });
   // update hghest score
   if (score > highestScore) {
     highestScore = score;
@@ -569,9 +575,10 @@ function update() {
   for (let i = 0; i < asteroids.length; i++) {
     const asteroid = asteroids[i];
 
-    // move the asteroids
+    // move and rotate the asteroids
     asteroids[i].x += asteroid.xv;
     asteroids[i].y += asteroid.yv;
+    asteroids[i].a += asteroid.rot;
     // handle edge of screen for asteroids
     if (asteroids[i].x < 0 - asteroids[i].r) {
       asteroids[i].x = canvas.width + asteroids[i].r;
@@ -596,10 +603,23 @@ function update() {
   } else if (ship.dead) {
     newGame();
   }
+
+  // draw score popups
+  for (let i = scorePopups.length - 1; i >= 0; i--) {
+    const popup = scorePopups[i];
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "rgba(255,255,100," + popup.alpha + ")";
+    ctx.font = "bold " + TEXT_SIZE * 0.6 + "px dejavu sans mono";
+    ctx.fillText(popup.text, popup.x, popup.y);
+    popup.y -= 1;
+    popup.alpha -= 1.5 / TEXT_FADE_TIME / FPS;
+    if (popup.alpha <= 0) scorePopups.splice(i, 1);
+  }
+
   // draw the lives
   for (let i = 0; i < lives; i++) {
-    lifeColour = exploding && i == lives - 1 ? "red" : "rgba(255,255,255,0.8)";
-
+    var lifeColour = exploding && i == lives - 1 ? "red" : "rgba(255,255,255,0.8)";
     drawShip(
       SHIP_SIZE + i * SHIP_SIZE * 1.2,
       SHIP_SIZE,
@@ -607,25 +627,27 @@ function update() {
       lifeColour
     );
   }
+
   // draw the score
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "rgba(255,255,255,0.7)";
   ctx.font = TEXT_SIZE + "px dejavu sans mono";
   ctx.fillText(score, canvas.width - SHIP_SIZE, SHIP_SIZE);
-  textAlpha -= 1.0 / TEXT_FADE_TIME / FPS;
 
   // draw the highest score
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "rgba(255,255,255,0.5)";
   ctx.font = TEXT_SIZE * 0.75 + "px dejavu sans mono";
-  ctx.fillText("Best score: " + highestScore, canvas.width / 2, SHIP_SIZE);
-  textAlpha -= 1.0 / TEXT_FADE_TIME / FPS;
+  ctx.fillText("Best: " + highestScore, canvas.width / 2, SHIP_SIZE);
 
-  // center dot
-  ctx.fillStyle = "#ff0000";
-  // ctx.fillRect(ship.x - 1, ship.y - 1, 2, 2);
+  // draw the level
+  ctx.textAlign = "left";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "rgba(255,255,255,0.5)";
+  ctx.font = TEXT_SIZE * 0.75 + "px dejavu sans mono";
+  ctx.fillText("Lvl " + level, SHIP_SIZE, SHIP_SIZE);
 }
 
 function gameOver() {
@@ -651,6 +673,7 @@ function newGame() {
     highestScore = parseInt(highestScore);
   }
   ship = createShip();
+  scorePopups = [];
 
   newLevel();
 }
