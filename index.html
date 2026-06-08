@@ -5,13 +5,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asteroid</title>
+    <style>
+      body { margin: 0; background: #000; }
+      #footer {
+        position: fixed; bottom: 10px; width: 100%;
+        text-align: center; color: rgba(255,255,255,0.4);
+        font: 13px monospace; pointer-events: none;
+      }
+      #footer a { color: rgba(100,200,255,0.6); text-decoration: none; pointer-events: all; }
+      #footer a:hover { color: rgba(100,200,255,1); }
+    </style>
 </head>
 
 <body>
-    <canvas id="canvas" width="700" height="500"
-        style="position: absolute;left: 50%; top: 50%;transform: translate(-50%, -50%);"></canvas>
+    <canvas id="canvas"
+        style="position: absolute;left: 50%; top: 50%;transform: translate(-50%, -50%); display: block;"></canvas>
 
+    <script>
+      function resizeCanvas() {
+        var canvas = document.getElementById("canvas");
+        var ratio = 700 / 500;
+        var w = window.innerWidth * 0.95;
+        var h = window.innerHeight * 0.95;
+        if (w / h > ratio) { w = h * ratio; } else { h = w / ratio; }
+        canvas.width = Math.floor(w);
+        canvas.height = Math.floor(h);
+      }
+      resizeCanvas();
+      window.addEventListener("resize", resizeCanvas);
+    </script>
     <script src="asteroid.js"></script>
+    <div id="footer">
+      Game built in 2020 &nbsp;|&nbsp;
+      <a href="https://github.com/oseeshogun/asteroid" target="_blank">github.com/oseeshogun/asteroid</a>
+    </div>
 </body>
 
 </html>
